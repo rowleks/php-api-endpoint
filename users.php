@@ -28,9 +28,9 @@ function query_db() {
 function post_db() {
     global $conn;
     $input = json_decode(file_get_contents('php://input'), true);
-    $username = $input['username'];
-    $email = $input['email'];
-    $gender = $input['gender'];
+    $username = strtolower($input['username']);
+    $email = strtolower($input['email']);
+    $gender = strtoupper($input['gender']);
     $dob = $input['dob'];
 
     try 
@@ -47,6 +47,24 @@ function post_db() {
         return false;
     }
 
+}
+
+function delete_db() {
+    global $conn;
+    $id = $_GET['id'];
+
+    try
+    {
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        return true;
+    }
+    catch(Exception $e)
+    {
+        echo $e;
+        return false;
+    }
 }
 
 if ($method === 'OPTIONS')
@@ -71,6 +89,16 @@ switch ($method) {
             $res = ['status'=> 'failed', 'message'=>'invalid request'];
         }
         break;
+    case 'DELETE':
+        if (delete_db())
+        {
+            $res = ['status'=> 'success', 'message'=>'deleted user'];
+        }
+        else 
+        {
+            $res = ['status'=> 'failed', 'message'=>'invalid request'];
+        }
+
     default:
             $res = ['status'=> 'failed', 'message'=>'Unsupported request method'];
     }
